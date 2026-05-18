@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Benin Consular Portal – Démo Officielle</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        benin: { green: '#008751', red: '#E11B22', yellow: '#FCD116', gold: '#D4A017', dark: '#1a3a2a', light: '#f0f7f2' }
+                    },
+                    fontFamily: { display: ['Georgia', 'Cambria', 'serif'], body: ['Inter', 'Segoe UI', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes pulseDot { 0%,100% { transform:scale(1); opacity:1; } 50% { transform:scale(1.5); opacity:0.7; } }
+        @keyframes drawLine { from { width:0; } to { width:100%; } }
+        @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+        @keyframes glow { 0%,100% { box-shadow:0 0 5px rgba(0,135,81,0.3); } 50% { box-shadow:0 0 25px rgba(0,135,81,0.6); } }
+        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+        @keyframes countUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.8s ease forwards; }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        .animate-glow { animation: glow 2s ease-in-out infinite; }
+        .dot-pulse { animation: pulseDot 2s infinite; }
+        .line-draw { animation: drawLine 1.2s ease forwards; }
+        .stagger-1 { animation-delay:0.1s; opacity:0; }
+        .stagger-2 { animation-delay:0.2s; opacity:0; }
+        .stagger-3 { animation-delay:0.3s; opacity:0; }
+        .stagger-4 { animation-delay:0.4s; opacity:0; }
+        .stagger-5 { animation-delay:0.5s; opacity:0; }
+        .stagger-6 { animation-delay:0.6s; opacity:0; }
+        .stagger-7 { animation-delay:0.7s; opacity:0; }
+        html { scroll-behavior: smooth; }
+        .card-hover { transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94); }
+        .card-hover:hover { transform:translateY(-5px); box-shadow:0 20px 40px rgba(0,0,0,0.08); }
+        .btn-primary { transition: all 0.3s ease; }
+        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(0,135,81,0.3); }
+        .modal-overlay { backdrop-filter: blur(4px); }
+        .tab-btn { transition: all 0.3s ease; cursor:pointer; padding-bottom:12px; }
+        .tab-btn.active { border-bottom:3px solid #008751; color:#008751; font-weight:600; }
+        .tab-btn:not(.active) { color:#6b7280; border-bottom:3px solid transparent; }
+        .tab-btn:not(.active):hover { color:#374151; }
+        .map-dot { transition: all 0.3s ease; cursor:pointer; }
+        .map-dot:hover { transform:scale(1.5); box-shadow:0 0 20px rgba(0,135,81,0.6); }
+        .progress-bar { transition: width 1.5s ease; }
+        .counter-value { display:inline-block; animation: countUp 0.5s ease forwards; }
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:#f1f1f1; }
+        ::-webkit-scrollbar-thumb { background:#008751; border-radius:3px; }
+        ::-webkit-scrollbar-thumb:hover { background:#00643d; }
+        @media print { .no-print { display:none !important; } body { font-size:11pt; } }
+        .hidden-tab { display: none; }
+    </style>
+</head>
+<body class="font-body bg-benin-light text-gray-800">
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 bg-benin-dark z-[200] flex items-center justify-center transition-opacity duration-700 no-print">
+        <div class="text-center text-white">
+            <div class="w-16 h-16 mx-auto mb-4 relative">
+                <div class="absolute inset-0 border-4 border-benin-yellow border-t-transparent rounded-full" style="animation: spin 0.8s linear infinite;"></div>
+                <div class="absolute inset-2 bg-benin-green rounded-full flex items-center justify-center">
+                    <span class="font-bold text-lg">B</span>
+                </div>
+            </div>
+            <p class="text-lg font-display font-bold">Benin Consular Portal</p>
+            <p class="text-sm text-white/60 mt-1">Chargement de la démonstration...</p>
+            <div class="w-48 h-1.5 bg-white/20 rounded-full mx-auto mt-4 overflow-hidden">
+                <div id="loadingBar" class="h-full bg-benin-yellow rounded-full" style="width:0%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-sm shadow-sm z-50 border-b border-gray-100 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-benin-green flex items-center justify-center text-white font-bold text-lg animate-glow">B</div>
+                <div>
+                    <span class="font-display font-bold text-lg text-benin-dark">Benin Consular Portal</span>
+                    <span class="hidden sm:inline text-xs text-gray-400 ml-2">· Démonstration officielle</span>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+                <a href="#apercu" class="hover:text-benin-green transition">Aperçu</a>
+                <a href="#modules" class="hover:text-benin-green transition">Modules</a>
+                <a href="#stats" class="hover:text-benin-green transition">Impact</a>
+                <a href="#architecture" class="hover:text-benin-green transition">Technique</a>
+                <a href="#budget" class="hover:text-benin-green transition">Budget</a>
+                <a href="#demande" class="hover:text-benin-green transition">Demande</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="hidden sm:inline-flex items-center gap-1.5 bg-green-50 text-benin-green text-xs font-semibold px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 bg-benin-green rounded-full dot-pulse"></span> Version pilote
+                </span>
+                <button onclick="openModal()" class="btn-primary bg-benin-green text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-md">Accès démo</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="pt-32 pb-20 bg-gradient-to-br from-benin-dark via-benin-green to-[#0d2e1e] text-white relative overflow-hidden">
+        <div class="absolute inset-0 opacity-30" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSA2MCAwIEwgMCAwIDAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+');"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <div class="flex items-center gap-3 mb-4 animate-fade-up stagger-1">
+                        <div class="flex gap-1">
+                            <span class="w-8 h-8 rounded bg-benin-yellow"></span>
+                            <span class="w-8 h-8 rounded bg-benin-red"></span>
+                            <span class="w-8 h-8 rounded bg-benin-green"></span>
+                        </div>
+                        <span class="text-sm font-medium text-white/70">République du Bénin</span>
+                    </div>
+                    <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold leading-tight mb-6 animate-fade-up stagger-2">
+                        Benin<br><span class="text-benin-yellow">Consular Portal</span>
+                    </h1>
+                    <p class="text-lg sm:text-xl text-white/80 max-w-xl mb-8 animate-fade-up stagger-3">
+                        Plateforme numérique d'assistance, d'enregistrement et de gestion consulaire
+                        des ressortissants béninois au Koweït et dans les pays du Golfe.
+                    </p>
+                    <div class="flex flex-wrap gap-4 animate-fade-up stagger-4">
+                        <button onclick="openModal()" class="btn-primary bg-benin-yellow text-benin-dark font-bold px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Voir la démonstration
+                        </button>
+                        <a href="#modules" class="border border-white/30 text-white px-6 py-3 rounded-lg font-medium hover:bg-white/10 transition flex items-center gap-2">
+                            Découvrir les modules
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
+                        </a>
+                    </div>
+                    <div class="flex items-center gap-6 mt-10 text-sm text-white/60 animate-fade-up stagger-5">
+                        <span>🇧🇯 Ambassade du Bénin au Koweït</span>
+                        <span class="hidden sm:inline">·</span>
+                        <span class="hidden sm:inline">📋 Projet pilote 2026</span>
+                    </div>
+                </div>
+                <!-- Dashboard Preview -->
+                <div class="hidden lg:block animate-fade-up stagger-6">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 animate-float">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-2">
+                                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                            </div>
+                            <span class="text-xs text-white/50">Tableau de bord · Ambassade</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 mb-4">
+                            <div class="bg-white/10 rounded-lg p-3 text-center">
+                                <div id="heroCounter1" class="text-2xl font-bold text-benin-yellow">0</div>
+                                <div class="text-xs text-white/60">Ressortissants</div>
+                            </div>
+                            <div class="bg-white/10 rounded-lg p-3 text-center">
+                                <div id="heroCounter2" class="text-2xl font-bold text-green-300">0</div>
+                                <div class="text-xs text-white/60">Rendez-vous</div>
+                            </div>
+                            <div class="bg-white/10 rounded-lg p-3 text-center">
+                                <div id="heroCounter3" class="text-2xl font-bold text-orange-300">0</div>
+                                <div class="text-xs text-white/60">Urgences</div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="bg-white/5 rounded-lg p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2"><span class="w-2 h-2 bg-red-400 rounded-full dot-pulse"></span><span class="text-sm">🆘 Alerte – Perte de passeport</span></div>
+                                <span class="text-xs text-white/40">Il y a 12 min</span>
+                            </div>
+                            <div class="bg-white/5 rounded-lg p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2"><span class="w-2 h-2 bg-yellow-400 rounded-full"></span><span class="text-sm">📅 Demande de visa – En attente</span></div>
+                                <span class="text-xs text-white/40">Il y a 2 h</span>
+                            </div>
+                            <div class="bg-white/5 rounded-lg p-3 flex items-center justify-between">
+                                <div class="flex items-center gap-2"><span class="w-2 h-2 bg-green-400 rounded-full"></span><span class="text-sm">✅ Enregistrement confirmé</span></div>
+                                <span class="text-xs text-white/40">Il y a 5 h</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-white/10 flex justify-between text-xs text-white/40">
+                            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Système opérationnel</span>
+                            <span>Dernière synchro : 14:32</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- APERÇU -->
+    <section id="apercu" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-benin-green font-semibold text-sm tracking-widest uppercase">Contexte & Vision</span>
+                <h2 class="text-3xl sm:text-4xl font-display font-bold text-gray-900 mt-3 mb-4">Moderniser l'action consulaire béninoise</h2>
+                <div class="w-16 h-1 bg-benin-yellow mx-auto mb-6 line-draw"></div>
+                <p class="text-lg text-gray-600">Face aux défis de la diaspora béninoise dans le Golfe, le <strong class="text-benin-green">Benin Consular Portal</strong> apporte une réponse numérique complète, sécurisée et inclusive.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-benin-light rounded-xl p-6 card-hover border border-green-100">
+                    <div class="w-12 h-12 bg-benin-green rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <h3 class="font-display font-bold text-lg text-gray-900 mb-2">Protection renforcée</h3>
+                    <p class="text-gray-600 text-sm">Mécanisme d'alerte rapide, géolocalisation d'urgence et suivi personnalisé pour chaque ressortissant en détresse.</p>
+                </div>
+                <div class="bg-benin-light rounded-xl p-6 card-hover border border-green-100">
+                    <div class="w-12 h-12 bg-benin-yellow rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-benin-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="font-display font-bold text-lg text-gray-900 mb-2">Efficacité administrative</h3>
+                    <p class="text-gray-600 text-sm">Finis les déplacements inutiles. Rendez-vous en ligne, dépôt de documents et suivi des dossiers à distance, 24h/24.</p>
+                </div>
+                <div class="bg-benin-light rounded-xl p-6 card-hover border border-green-100">
+                    <div class="w-12 h-12 bg-benin-red rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </div>
+                    <h3 class="font-display font-bold text-lg text-gray-900 mb-2">Données sécurisées</h3>
+                    <p class="text-gray-600 text-sm">Chiffrement AES-256, authentification OTP, contrôle d'accès par habilitations et journalisation complète.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODULES -->
+    <section id="modules" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-benin-green font-semibold text-sm tracking-widest uppercase">Architecture fonctionnelle</span>
+                <h2 class="text-3xl sm:text-4xl font-display font-bold text-gray-900 mt-3 mb-4">8 modules pour une couverture complète</h2>
+                <div class="w-16 h-1 bg-benin-yellow mx-auto mb-6 line-draw"></div>
+                <p class="text-lg text-gray-600">Du citoyen à l'agent consulaire, chaque composant est conçu pour la simplicité, la sécurité et l'efficacité opérationnelle.</p>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3 text-blue-600 text-lg">👤</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Espace citoyen</h4>
+                    <p class="text-xs text-gray-500">Création de compte, profil, mise à jour des informations et historique.</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-3 text-green-600 text-lg">📋</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Enregistrement</h4>
+                    <p class="text-xs text-gray-500">Base de données structurée des ressortissants béninois.</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3 text-purple-600 text-lg">📎</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Dépôt documentaire</h4>
+                    <p class="text-xs text-gray-500">Téléversement sécurisé des pièces justificatives.</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mb-3 text-orange-600 text-lg">📅</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Rendez-vous</h4>
+                    <p class="text-xs text-gray-500">Réservation en ligne avec confirmation et rappels.</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mb-3 text-red-600 text-lg">🆘</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Assistance d'urgence</h4>
+                    <p class="text-xs text-gray-500">Bouton SOS et remontée rapide d'informations critiques.</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center mb-3 text-teal-600 text-lg">📊</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Tableau de bord</h4>
+                    <p class="text-xs text-gray-500">Suivi en temps réel, statistiques et indicateurs clés.</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mb-3 text-indigo-600 text-lg">📢</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Communication</h4>
+                    <p class="text-xs text-gray-500">Alertes officielles, annonces et notifications ciblées.</p>
+                </div>
+                <div class="bg-white rounded-xl p-5 card-hover border border-gray-100 shadow-sm">
+                    <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center mb-3 text-amber-600 text-lg">🔑</div>
+                    <h4 class="font-bold text-gray-900 mb-1">Identifiant numérique</h4>
+                    <p class="text-xs text-gray-500">QR Code sécurisé pour chaque citoyen enregistré.</p>
+                </div>
+            </div>
+            <!-- Demo preview -->
+            <div class="mt-16 grid lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                    <div class="bg-benin-green px-6 py-3 flex items-center justify-between">
+                        <span class="text-white font-semibold text-sm">🧑‍💻 Espace citoyen – Aperçu live</span>
+                        <span class="text-white/60 text-xs">Connecté</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-benin-green to-benin-yellow flex items-center justify-center text-white font-bold text-xl">KM</div>
+                            <div><h4 class="font-bold text-gray-900">Koffi Mensah</h4><p class="text-sm text-gray-500">ID BCP-2026-0247 · Koweït City</p></div>
+                            <span class="ml-auto bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Vérifié</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="bg-gray-50 rounded-lg p-3"><span class="text-xs text-gray-400">Passeport</span><p class="font-medium text-sm">BN-0123456</p></div>
+                            <div class="bg-gray-50 rounded-lg p-3"><span class="text-xs text-gray-400">Statut</span><p class="font-medium text-sm text-green-600">Actif</p></div>
+                            <div class="bg-gray-50 rounded-lg p-3"><span class="text-xs text-gray-400">Dernier RDV</span><p class="font-medium text-sm">12 mai 2026</p></div>
+                            <div class="bg-gray-50 rounded-lg p-3"><span class="text-xs text-gray-400">Contact urgence</span><p class="font-medium text-sm">+229 97 00 00 00</p></div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-benin-green text-white text-sm font-medium py-2 rounded-lg hover:bg-green-700 transition">📅 Prendre RDV</button>
+                            <button class="flex-1 border border-red-200 text-red-600 text-sm font-medium py-2 rounded-lg hover:bg-red-50 transition">🆘 Signaler urgence</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                    <div class="bg-red-600 px-6 py-3 flex items-center justify-between">
+                        <span class="text-white font-semibold text-sm">🚨 Module d'assistance d'urgence</span>
+                        <span class="text-white/60 text-xs">Temps réel</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                            <div class="flex items-start gap-3">
+                                <span class="text-2xl animate-pulse">🆘</span>
+                                <div><h4 class="font-bold text-red-800 text-sm">Alerte active · Perte de documents</h4><p class="text-sm text-red-600 mt-1">Ressortissant : A. Djimon · Koweït</p><p class="text-xs text-red-500 mt-1">Signalé il y a 8 min · Prise en charge en cours</p></div>
+                            </div>
+                        </div>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm"><span class="text-gray-500">Type</span><span class="font-medium">Perte de passeport</span></div>
+                            <div class="flex justify-between text-sm"><span class="text-gray-500">Localisation</span><span class="font-medium">Salmiya, Koweït</span></div>
+                            <div class="flex justify-between text-sm"><span class="text-gray-500">Contact</span><span class="font-medium">+965 9XXX XXXX</span></div>
+                        </div>
+                        <div class="bg-benin-light rounded-lg p-3 flex items-center gap-2 text-sm">
+                            <span class="w-2 h-2 bg-green-500 rounded-full dot-pulse"></span>
+                            <span>Agent diplomatique assigné · Réponse estimée &lt; 15 min</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section id="stats" class="py-20 bg-benin-dark text-white relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-benin-yellow font-semibold text-sm tracking-widest uppercase">Impact attendu</span>
+                <h2 class="text-3xl sm:text-4xl font-display font-bold mt-3 mb-4">Des résultats mesurables et concrets</h2>
+                <div class="w-16 h-1 bg-benin-yellow mx-auto mb-6"></div>
+            </div>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 card-hover">
+                    <div class="text-5xl font-display font-bold text-benin-yellow mb-2">-70%</div>
+                    <div class="text-sm text-white/70">Déplacements physiques</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 card-hover">
+                    <div class="text-5xl font-display font-bold text-benin-yellow mb-2">+85%</div>
+                    <div class="text-sm text-white/70">Ressortissants enregistrés</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 card-hover">
+                    <div class="text-5xl font-display font-bold text-benin-yellow mb-2">&lt;15</div>
+                    <div class="text-sm text-white/70">Minutes réponse urgences</div>
+                </div>
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/10 card-hover">
+                    <div class="text-5xl font-display font-bold text-benin-yellow mb-2">100%</div>
+                    <div class="text-sm text-white/70">Traçabilité des dossiers</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-benin-green font-semibold text-sm tracking-widest uppercase">Architecture technique</span>
+                <h2 class="text-3xl sm:text-4xl font-display font-bold text-gray-900 mt-3 mb-4">Une stack moderne et sécurisée</h2>
+                <div class="w-16 h-1 bg-benin-yellow mx-auto mb-6 line-draw"></div>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="border border-gray-200 rounded-xl p-5 card-hover">
+                    <h4 class="font-bold text-gray-900 mb-3 text-sm uppercase">🎨 Frontend</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-blue-50 text-blue-700 text-xs px-3 py-1.5 rounded-full">React 18</span>
+                        <span class="bg-blue-50 text-blue-700 text-xs px-3 py-1.5 rounded-full">Next.js</span>
+                        <span class="bg-blue-50 text-blue-700 text-xs px-3 py-1.5 rounded-full">TailwindCSS</span>
+                        <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-full">PWA Ready</span>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-xl p-5 card-hover">
+                    <h4 class="font-bold text-gray-900 mb-3 text-sm uppercase">⚙️ Backend</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-green-50 text-green-700 text-xs px-3 py-1.5 rounded-full">Node.js</span>
+                        <span class="bg-green-50 text-green-700 text-xs px-3 py-1.5 rounded-full">Django</span>
+                        <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-full">REST API</span>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-xl p-5 card-hover">
+                    <h4 class="font-bold text-gray-900 mb-3 text-sm uppercase">🗄️ Base de données</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-purple-50 text-purple-700 text-xs px-3 py-1.5 rounded-full">PostgreSQL</span>
+                        <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-full">Stockage chiffré</span>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-xl p-5 card-hover">
+                    <h4 class="font-bold text-gray-900 mb-3 text-sm uppercase">🔐 Sécurité</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-red-50 text-red-700 text-xs px-3 py-1.5 rounded-full">AES-256</span>
+                        <span class="bg-red-50 text-red-700 text-xs px-3 py-1.5 rounded-full">OTP 2FA</span>
+                        <span class="bg-red-50 text-red-700 text-xs px-3 py-1.5 rounded-full">RBAC</span>
+                        <span class="bg-red-50 text-red-700 text-xs px-3 py-1.5 rounded-full">Journalisation</span>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-xl p-5 card-hover">
+                    <h4 class="font-bold text-gray-900 mb-3 text-sm uppercase">☁️ Hébergement</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-amber-50 text-amber-700 text-xs px-3 py-1.5 rounded-full">Vercel</span>
+                        <span class="bg-amber-50 text-amber-700 text-xs px-3 py-1.5 rounded-full">DigitalOcean</span>
+                        <span class="bg-gray-100 text-gray-600 text-xs px-3 py-1.5 rounded-full">TLS 1.3</span>
+                    </div>
+                </div>
+                <div class="border border-gray-200 rounded-xl p-5 card-hover">
+                    <h4 class="font-bold text-gray-900 mb-3 text-sm uppercase">📬 Notifications</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="bg-teal-50 text-teal-700 text-xs px-3 py-1.5 rounded-full">Email</span>
+                        <span class="bg-teal-50 text-teal-700 text-xs px-3 py-1.5 rounded-full">SMS</span>
+                        <span class="bg-teal-50 text-teal-700 text-xs px-3 py-1.5 rounded-full">Push</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Architecture diagram -->
+            <div class="mt-12 bg-gray-50 rounded-2xl p-8 border border-gray-200">
+                <h4 class="font-bold text-gray-900 mb-6 text-center">Schéma d'architecture fonctionnelle</h4>
+                <div class="flex flex-col lg:flex-row items-center justify-center gap-3 lg:gap-2 text-sm">
+                    <div class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200 w-full lg:w-auto text-center"><span class="font-semibold">🌐 Citoyen</span><div class="text-gray-400 text-xs">Navigateur/Mobile</div></div>
+                    <div class="text-gray-300 text-2xl hidden lg:block">→</div>
+                    <div class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200 w-full lg:w-auto text-center"><span class="font-semibold">🔒 Auth OTP</span></div>
+                    <div class="text-gray-300 text-2xl hidden lg:block">→</div>
+                    <div class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200 w-full lg:w-auto text-center"><span class="font-semibold">⚙️ API Backend</span></div>
+                    <div class="text-gray-300 text-2xl hidden lg:block">→</div>
+                    <div class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200 w-full lg:w-auto text-center"><span class="font-semibold">🗄️ PostgreSQL</span></div>
+                    <div class="text-gray-300 text-2xl hidden lg:block">→</div>
+                    <div class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200 w-full lg:w-auto text-center"><span class="font-semibold">📁 Stockage docs</span></div>
+                    <div class="text-gray-300 text-2xl hidden lg:block">→</div>
+                    <div class="bg-white rounded-lg px-4 py-3 shadow-sm border border-gray-200 w-full lg:w-auto text-center"><span class="font-semibold">📊 Dashboard</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BUDGET -->
+    <section id="budget" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-benin-green font-semibold text-sm tracking-widest uppercase">Investissement</span>
+                <h2 class="text-3xl sm:text-4xl font-display font-bold text-gray-900 mt-3 mb-4">Budget prévisionnel du projet pilote</h2>
+                <div class="w-16 h-1 bg-benin-yellow mx-auto mb-6 line-draw"></div>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                    <div class="bg-gradient-to-r from-benin-green to-green-700 px-6 py-4">
+                        <h3 class="text-white font-bold text-lg">💰 Budget MVP pilote</h3>
+                        <p class="text-white/70 text-sm">Investissement initial unique</p>
+                    </div>
+                    <div class="p-6 space-y-2">
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Étude, cadrage et spécifications</span><span class="font-medium">1 500 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Design UX/UI et maquettes</span><span class="font-medium">1 000 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Développement frontend</span><span class="font-medium">3 000 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Développement backend</span><span class="font-medium">3 500 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Base de données et architecture</span><span class="font-medium">1 200 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Gestion documentaire sécurisée</span><span class="font-medium">1 000 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Module rendez-vous</span><span class="font-medium">800 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Module assistance d'urgence</span><span class="font-medium">1 200 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Tableau de bord ambassade</span><span class="font-medium">1 500 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Notifications SMS / Email</span><span class="font-medium">1 000 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Sécurité, authentification, OTP</span><span class="font-medium">1 500 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Tests, validation et corrections</span><span class="font-medium">1 000 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Formation initiale</span><span class="font-medium">700 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Hébergement et déploiement</span><span class="font-medium">1 100 €</span></div>
+                        <div class="flex justify-between text-sm px-2 py-1"><span>Support de lancement</span><span class="font-medium">1 000 €</span></div>
+                        <div class="border-t-2 border-benin-green pt-3 mt-3 flex justify-between font-bold text-lg"><span>Total MVP pilote</span><span class="text-benin-green">19 000 €</span></div>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100">
+                        <div class="bg-gradient-to-r from-benin-dark to-gray-800 px-6 py-4">
+                            <h3 class="text-white font-bold text-lg">🔄 Charges récurrentes annuelles</h3>
+                            <p class="text-white/70 text-sm">Fonctionnement post-déploiement</p>
+                        </div>
+                        <div class="p-6 space-y-2">
+                            <div class="flex justify-between text-sm px-2 py-1"><span>Hébergement et infrastructure</span><span class="font-medium">2 000 €</span></div>
+                            <div class="flex justify-between text-sm px-2 py-1"><span>Maintenance corrective et évolutive</span><span class="font-medium">4 000 €</span></div>
+                            <div class="flex justify-between text-sm px-2 py-1"><span>Support technique</span><span class="font-medium">2 500 €</span></div>
+                            <div class="flex justify-between text-sm px-2 py-1"><span>Notifications SMS / services tiers</span><span class="font-medium">1 500 €</span></div>
+                            <div class="flex justify-between text-sm px-2 py-1"><span>Sauvegardes, supervision, sécurité</span><span class="font-medium">1 500 €</span></div>
+                            <div class="border-t-2 border-benin-dark pt-3 mt-3 flex justify-between font-bold text-lg"><span>Total annuel</span><span class="text-benin-dark">11 500 €</span></div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border border-amber-200">
+                        <h3 class="font-bold text-lg text-amber-800 mb-3">🚀 Version institutionnelle renforcée</h3>
+                        <p class="text-sm text-amber-700 mb-3">Extension multi-pays, mobile natif, IA consulaire, signature électronique.</p>
+                        <div class="flex items-center justify-between"><span class="text-sm font-medium">Budget estimé</span><span class="text-2xl font-bold text-amber-900">25 000 – 50 000 €</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DEMANDE -->
+    <section id="demande" class="py-20 bg-benin-dark text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl sm:text-4xl font-display font-bold mb-6">Soumis à l'appréciation de l'État béninois</h2>
+            <div class="w-16 h-1 bg-benin-yellow mx-auto mb-8"></div>
+            <p class="text-lg text-white/80 max-w-3xl mx-auto mb-10">
+                Le <strong class="text-white">Benin Consular Portal</strong> est une initiative de modernisation
+                consulaire à forte valeur publique pour la protection des citoyens et la performance diplomatique.
+            </p>
+            <div class="max-w-2xl mx-auto bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-10">
+                <h3 class="font-display font-bold text-xl mb-6 text-benin-yellow">📋 Demande officielle</h3>
+                <ul class="text-left space-y-4 text-white/80 text-sm">
+                    <li class="flex items-start gap-3"><span class="text-benin-yellow font-bold shrink-0 w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-xs">1</span><span>Examiner favorablement le présent projet</span></li>
+                    <li class="flex items-start gap-3"><span class="text-benin-yellow font-bold shrink-0 w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-xs">2</span><span>Lui accorder une validation de principe</span></li>
+                    <li class="flex items-start gap-3"><span class="text-benin-yellow font-bold shrink-0 w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-xs">3</span><span>Autoriser l'ouverture d'un cadre de concertation technique</span></li>
+                    <li class="flex items-start gap-3"><span class="text-benin-yellow font-bold shrink-0 w-6 h-6 bg-white/10 rounded-full flex items-center justify-center text-xs">4</span><span>Envisager la mise en œuvre pilote à l'Ambassade du Bénin au Koweït</span></li>
+                </ul>
+            </div>
+            <button onclick="openModal()" class="btn-primary bg-benin-yellow text-benin-dark font-bold px-8 py-3 rounded-lg shadow-lg">Accéder à la démonstration interactive</button>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-gray-900 text-gray-400 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <div class="flex items-center gap-2 mb-3"><div class="w-8 h-8 rounded-full bg-benin-green flex items-center justify-center text-white font-bold text-sm">B</div><span class="font-display font-bold text-white">BCP</span></div>
+                    <p class="text-sm">Benin Consular Portal — Plateforme numérique d'assistance consulaire.</p>
+                </div>
+                <div><h5 class="font-semibold text-white mb-3">Contact</h5><p class="text-sm">Ambassade du Bénin au Koweït</p><p class="text-sm">Ministère des Affaires étrangères</p></div>
+                <div><h5 class="font-semibold text-white mb-3">Document</h5><p class="text-sm">Proposition officielle · Démo 2026</p><p class="text-sm mt-2"><span class="w-2 h-2 bg-green-500 rounded-full dot-pulse inline-block mr-1"></span> Projet pilote</p></div>
+            </div>
+            <div class="border-t border-gray-700 pt-6 text-center text-xs">
+                <div class="flex justify-center gap-3 mb-3">
+                    <span class="w-6 h-6 rounded bg-benin-green"></span>
+                    <span class="w-6 h-6 rounded bg-benin-yellow"></span>
+                    <span class="w-6 h-6 rounded bg-benin-red"></span>
+                </div>
+                République du Bénin — Fraternité, Justice, Travail
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL -->
+    <div id="demoModal" class="fixed inset-0 bg-black/60 modal-overlay z-[100] hidden items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h3 class="font-display font-bold text-xl text-gray-900">🎬 Démonstration interactive</h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-6">
+                <div class="flex border-b border-gray-200 gap-6 text-sm" id="modalTabs">
+                    <button class="tab-btn active pb-3" onclick="switchTab('citoyen')">🧑‍💼 Espace citoyen</button>
+                    <button class="tab-btn pb-3" onclick="switchTab('urgence')">🚨 Urgence</button>
+                    <button class="tab-btn pb-3" onclick="switchTab('dashboard')">📊 Dashboard</button>
+                </div>
+                <div id="tab-citoyen" class="tab-content space-y-4">
+                    <div class="bg-gradient-to-br from-gray-50 to-green-50 rounded-xl p-5 border border-green-100">
+                        <h4 class="font-bold text-gray-900 mb-4">📝 Formulaire d'enregistrement consulaire</h4>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div><label class="block text-xs text-gray-500 mb-1">Nom complet</label><input type="text" value="Koffi Mensah" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm" readonly></div>
+                            <div><label class="block text-xs text-gray-500 mb-1">N° Passeport</label><input type="text" value="BN-0123456" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm" readonly></div>
+                            <div><label class="block text-xs text-gray-500 mb-1">Téléphone</label><input type="text" value="+965 5000 0000" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm" readonly></div>
+                            <div><label class="block text-xs text-gray-500 mb-1">Email</label><input type="text" value="k.mensah@email.com" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm" readonly></div>
+                            <div><label class="block text-xs text-gray-500 mb-1">Pays</label><input type="text" value="Koweït" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm" readonly></div>
+                            <div><label class="block text-xs text-gray-500 mb-1">Contact urgence</label><input type="text" value="+229 97 00 00 01" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm" readonly></div>
+                        </div>
+                        <div class="mt-4 text-sm text-green-700 bg-green-50 px-4 py-2 rounded-lg flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            Enregistrement réussi · ID BCP-2026-0247
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">🔒 <strong>Sécurité :</strong> Chiffrement AES-256, authentification OTP, contrôle d'accès RBAC.</div>
+                </div>
+                <div id="tab-urgence" class="tab-content space-y-4 hidden">
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-5">
+                        <div class="flex items-start gap-3"><span class="text-3xl animate-pulse">🆘</span><div><h4 class="font-bold text-red-800">Simulateur d'urgence</h4><p class="text-sm text-red-700">Transmission instantanée d'une alerte à l'ambassade avec localisation.</p></div></div>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div class="bg-white border border-gray-200 rounded-lg p-4"><span class="text-xs text-gray-400">Type</span><p class="font-semibold mt-1">Perte de passeport</p></div>
+                        <div class="bg-white border border-gray-200 rounded-lg p-4"><span class="text-xs text-gray-400">Localisation</span><p class="font-semibold mt-1">Salmiya, Koweït</p></div>
+                        <div class="bg-white border border-gray-200 rounded-lg p-4"><span class="text-xs text-gray-400">Contact</span><p class="font-semibold mt-1">+965 5000 0000</p></div>
+                        <div class="bg-white border border-gray-200 rounded-lg p-4"><span class="text-xs text-gray-400">Statut</span><p class="font-semibold mt-1 text-green-600 flex items-center gap-1"><span class="w-2 h-2 bg-green-500 rounded-full dot-pulse"></span> Prise en charge</p></div>
+                    </div>
+                </div>
+                <div id="tab-dashboard" class="tab-content space-y-4 hidden">
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 text-white">
+                        <h4 class="font-bold mb-4">📊 Tableau de bord Ambassade</h4>
+                        <div class="grid grid-cols-3 gap-3 mb-4">
+                            <div class="bg-white/10 rounded-xl p-4 text-center"><div class="text-3xl font-bold text-benin-yellow">247</div><div class="text-xs text-white/60">Ressortissants</div></div>
+                            <div class="bg-white/10 rounded-xl p-4 text-center"><div class="text-3xl font-bold text-green-300">12</div><div class="text-xs text-white/60">Rendez-vous</div></div>
+                            <div class="bg-white/10 rounded-xl p-4 text-center"><div class="text-3xl font-bold text-orange-300">3</div><div class="text-xs text-white/60">Urgences</div></div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="bg-white/5 rounded-lg p-3 flex justify-between"><span>🆘 Perte passeport — K. Mensah</span><span class="text-xs text-white/50">8 min</span></div>
+                            <div class="bg-white/5 rounded-lg p-3 flex justify-between"><span>🆕 Enregistrement — A. Diallo</span><span class="text-xs text-white/50">25 min</span></div>
+                            <div class="bg-white/5 rounded-lg p-3 flex justify-between"><span>📅 RDV — M. Zinsou</span><span class="text-xs text-white/50">Demain 10h</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-600 border border-gray-200">
+                    <strong>📌 Note :</strong> Données fictives à but de démonstration institutionnelle.
+                </div>
+            </div>
+            <div class="border-t border-gray-100 px-6 py-4 flex justify-end">
+                <button onclick="closeModal()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 transition">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== LOADING SCREEN =====
+        window.addEventListener('load', function() {
+            let progress = 0;
+            const bar = document.getElementById('loadingBar');
+            const interval = setInterval(function() {
+                progress += Math.random() * 15 + 5;
+                if (progress > 100) progress = 100;
+                bar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(function() {
+                        document.getElementById('loadingScreen').style.opacity = '0';
+                        setTimeout(function() {
+                            document.getElementById('loadingScreen').style.display = 'none';
+                            startHeroCounters();
+                        }, 500);
+                    }, 400);
+                }
+            }, 200);
+        });
+
+        // ===== HERO COUNTERS =====
+        function startHeroCounters() {
+            animateCounter('heroCounter1', 247, 2000);
+            animateCounter('heroCounter2', 12, 1500);
+            animateCounter('heroCounter3', 3, 1000);
+        }
+
+        function animateCounter(elementId, target, duration) {
+            const el = document.getElementById(elementId);
+            let current = 0;
+            const step = Math.ceil(target / (duration / 16));
+            const timer = setInterval(function() {
+                current += step;
+                if (current >= target) { current = target; clearInterval(timer); }
+                el.textContent = current;
+            }, 16);
+        }
+
+        // ===== MODAL =====
+        function openModal() {
+            document.getElementById('demoModal').classList.remove('hidden');
+            document.getElementById('demoModal').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            // Reset to first tab
+            switchTab('citoyen');
+        }
+
+        function closeModal() {
+            document.getElementById('demoModal').classList.add('hidden');
+            document.getElementById('demoModal').classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('demoModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ===== TAB SYSTEM =====
+        function switchTab(tabName) {
+            // Update tab buttons
+            const tabs = document.querySelectorAll('#modalTabs .tab-btn');
+            tabs.forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+
+            // Find the clicked tab and activate it
+            tabs.forEach(function(tab) {
+                if (tab.textContent.trim().includes(
+                    tabName === 'citoyen' ? 'Citoyen' :
+                    tabName === 'urgence' ? 'Urgence' : 'Dashboard'
+                )) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(function(el) {
+                el.classList.add('hidden');
+            });
+
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+        }
+
+        // ===== SMOOTH SCROLL =====
+        document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // ===== OBSERVER FOR ANIMATIONS =====
+        if (window.IntersectionObserver) {
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.card-hover, .animate-fade-up').forEach(function(el) {
+                observer.observe(el);
+            });
+        }
+    </script>
+</body>
+</html>
